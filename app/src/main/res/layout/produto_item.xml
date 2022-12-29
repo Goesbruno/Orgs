@@ -8,9 +8,7 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="8dp">
 
-
-    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -34,7 +32,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:fontFamily="@font/montserrat_alternates"
+            android:fontFamily="@font/montserrat"
             android:maxLines="1"
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="@id/produto_item_nome"
@@ -48,7 +46,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
-            android:fontFamily="@font/montserrat_alternates"
+            android:fontFamily="@font/montserrat"
             android:textColor="@android:color/holo_green_dark"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -56,29 +54,20 @@
             app:layout_constraintEnd_toEndOf="@id/produto_item_nome"
             app:layout_constraintStart_toStartOf="@id/produto_item_nome"
             app:layout_constraintTop_toBottomOf="@id/produto_item_descricao"
-            tools:text="19.99" />
-
-        <!--        <androidx.constraintlayout.widget.Guideline-->
-        <!--            android:layout_width="wrap_content"-->
-        <!--            android:layout_height="wrap_content" -->
-        <!--            android:orientation="vertical"-->
-        <!--            app:layout_constraintGuide_percent="0.3"-->
-        <!--            android:id="@+id/guideline"/>-->
+            tools:text="R$ 19.99" />
 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scaleType="centerCrop"
+            app:layout_constraintWidth_percent="0.3"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/produto_item_nome"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.3"
             app:srcCompat="@drawable/produto_1"
             tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
-
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>
