@@ -12,6 +12,12 @@ import br.com.alura.orgs.databinding.ActivityDetalhesProdutoBinding
 import br.com.alura.orgs.extensions.formataParaMoedaBrasileira
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.Dispatchers.Main
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class DetalhesProdutoActivity : AppCompatActivity() {
@@ -27,6 +33,8 @@ class DetalhesProdutoActivity : AppCompatActivity() {
         AppDatabase.instancia(this).produtoDao()
     }
 
+    private val escopo = CoroutineScope(IO)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -39,10 +47,16 @@ class DetalhesProdutoActivity : AppCompatActivity() {
     }
 
     private fun buscaProduto() {
-        produto = produtoDao.buscaPorId(produtoId)
-        produto?.let {
-            preencheCampos(it)
-        } ?: finish()
+        //A Query é realizada em outra thread
+        escopo.launch {
+            produto = produtoDao.buscaPorId(produtoId)
+            //Voltamos para a thread principal para fazer as alterações na view
+            withContext(Main) {
+                produto?.let {
+                    preencheCampos(it)
+                } ?: finish()
+            }
+        }
     }
 
     // Método para inflar os menus criados
@@ -60,8 +74,10 @@ class DetalhesProdutoActivity : AppCompatActivity() {
         // O when filtra pelo id qual ação que queremos que seja feita
         when (item.itemId) {
             R.id.menu_detalhes_produto_remover -> {
-                produto?.let { produtoDao.remover(it) }
-                finish()
+                escopo.launch {
+                    produto?.let { produtoDao.remover(it) }
+                    finish()
+                }
             }
             R.id.menu_detalhes_produto_editar -> {
                 Intent(this, FormularioProdutoActivity::class.java).apply {

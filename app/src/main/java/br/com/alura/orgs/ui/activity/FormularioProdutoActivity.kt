@@ -8,6 +8,10 @@ import br.com.alura.orgs.databinding.ActivityFormularioProdutoBinding
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.dialog.FormularioImagemDialog
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.math.BigDecimal
 
 class FormularioProdutoActivity : AppCompatActivity() {
@@ -17,9 +21,11 @@ class FormularioProdutoActivity : AppCompatActivity() {
     }
     private var url: String? = null
     private var produtoId = 0L
-    private val produtoDao:ProdutoDao by lazy {
+    private val produtoDao: ProdutoDao by lazy {
         AppDatabase.instancia(this).produtoDao()
     }
+
+    private val escopo = CoroutineScope(Dispatchers.IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,8 +52,12 @@ class FormularioProdutoActivity : AppCompatActivity() {
     }
 
     private fun tentaBuscar() {
-        produtoDao.buscaPorId(produtoId)?.let {
-            preencheCampos(it)
+        escopo.launch {
+            produtoDao.buscaPorId(produtoId)?.let {
+                withContext(Dispatchers.Main) {
+                    preencheCampos(it)
+                }
+            }
         }
     }
 
@@ -66,8 +76,10 @@ class FormularioProdutoActivity : AppCompatActivity() {
 
         botaoSalvar.setOnClickListener {
             val produtoNovo = criaProduto()
-            produtoDao.salva(produtoNovo)
-            finish()
+            escopo.launch {
+                produtoDao.salva(produtoNovo)
+                finish()
+            }
         }
     }
 
