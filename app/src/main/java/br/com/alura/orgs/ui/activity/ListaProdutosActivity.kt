@@ -2,17 +2,27 @@ package br.com.alura.orgs.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.database.AppDatabase
+import br.com.alura.orgs.database.dao.ProdutoDao
 import br.com.alura.orgs.databinding.ActivityListaProdutosActivityBinding
+import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.recyclerview.adapter.ListaProdutosAdapter
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 
 class ListaProdutosActivity : AppCompatActivity() {
 
     private val adapter = ListaProdutosAdapter(context = this)
     private val binding by lazy {
         ActivityListaProdutosActivityBinding.inflate(layoutInflater)
+    }
+    private val dao by lazy {
+        val db = AppDatabase.instancia(this)
+        db.produtoDao()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,21 +31,11 @@ class ListaProdutosActivity : AppCompatActivity() {
         configuraRecyclerView()
         configuraFab()
 
-    }
-
-
-    override fun onResume() {
-        super.onResume()
-        val db = AppDatabase.instancia(this)
-        val produtoDao = db.produtoDao()
-
         //Implementando coroutine para realizar a query do bd fora da main thread
-        val escopo = MainScope()
-        escopo.launch {
-            val produtos = withContext(Dispatchers.IO) {
-                produtoDao.buscaTodos()
+        lifecycleScope.launch {
+            dao.buscaTodos().collect { produtos ->
+                adapter.atualiza(produtos)
             }
-            adapter.atualiza(produtos)
         }
     }
 

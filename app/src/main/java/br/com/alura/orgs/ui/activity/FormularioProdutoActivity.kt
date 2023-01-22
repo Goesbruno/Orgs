@@ -1,17 +1,16 @@
 package br.com.alura.orgs.ui.activity
 
 import android.os.Bundle
+import androidx.annotation.RestrictTo
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import br.com.alura.orgs.database.AppDatabase
 import br.com.alura.orgs.database.dao.ProdutoDao
 import br.com.alura.orgs.databinding.ActivityFormularioProdutoBinding
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
 import br.com.alura.orgs.ui.dialog.FormularioImagemDialog
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.math.BigDecimal
 
 class FormularioProdutoActivity : AppCompatActivity() {
@@ -24,8 +23,6 @@ class FormularioProdutoActivity : AppCompatActivity() {
     private val produtoDao: ProdutoDao by lazy {
         AppDatabase.instancia(this).produtoDao()
     }
-
-    private val escopo = CoroutineScope(Dispatchers.IO)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,11 +49,9 @@ class FormularioProdutoActivity : AppCompatActivity() {
     }
 
     private fun tentaBuscar() {
-        escopo.launch {
+        lifecycleScope.launch {
             produtoDao.buscaPorId(produtoId)?.let {
-                withContext(Dispatchers.Main) {
                     preencheCampos(it)
-                }
             }
         }
     }
@@ -76,7 +71,7 @@ class FormularioProdutoActivity : AppCompatActivity() {
 
         botaoSalvar.setOnClickListener {
             val produtoNovo = criaProduto()
-            escopo.launch {
+            lifecycleScope.launch {
                 produtoDao.salva(produtoNovo)
                 finish()
             }
