@@ -1,6 +1,7 @@
 package br.com.alura.orgs.ui.activity
 
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.RestrictTo
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -9,11 +10,16 @@ import br.com.alura.orgs.database.dao.ProdutoDao
 import br.com.alura.orgs.databinding.ActivityFormularioProdutoBinding
 import br.com.alura.orgs.extensions.tentaCarregarImagem
 import br.com.alura.orgs.model.Produto
+import br.com.alura.orgs.preferences.datastore
+import br.com.alura.orgs.preferences.usuarioLogadoPreference
 import br.com.alura.orgs.ui.dialog.FormularioImagemDialog
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.firstOrNull
 import java.math.BigDecimal
 
-class FormularioProdutoActivity : AppCompatActivity() {
+class FormularioProdutoActivity : UsuarioBaseActivity() {
 
     private val binding by lazy {
         ActivityFormularioProdutoBinding.inflate(layoutInflater)
@@ -22,6 +28,9 @@ class FormularioProdutoActivity : AppCompatActivity() {
     private var produtoId = 0L
     private val produtoDao: ProdutoDao by lazy {
         AppDatabase.instancia(this).produtoDao()
+    }
+    private val usuarioDao by lazy {
+        AppDatabase.instancia(this).usuarioDao()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,7 +46,9 @@ class FormularioProdutoActivity : AppCompatActivity() {
                 }
         }
         tentaCarregarProduto()
+
     }
+
 
     private fun tentaCarregarProduto() {
         produtoId = intent.getLongExtra(CHAVE_PRODUTO_ID, 0L)
@@ -51,7 +62,7 @@ class FormularioProdutoActivity : AppCompatActivity() {
     private fun tentaBuscar() {
         lifecycleScope.launch {
             produtoDao.buscaPorId(produtoId)?.let {
-                    preencheCampos(it)
+                preencheCampos(it)
             }
         }
     }
@@ -70,15 +81,18 @@ class FormularioProdutoActivity : AppCompatActivity() {
 
 
         botaoSalvar.setOnClickListener {
-            val produtoNovo = criaProduto()
+            //Coleta o usuário logado e envia seu id para a criação de produto
             lifecycleScope.launch {
-                produtoDao.salva(produtoNovo)
-                finish()
+                usuario.value?.let { usuario ->
+                    val produtoNovo = criaProduto(usuario.id)
+                    produtoDao.salva(produtoNovo)
+                    finish()
+                }
             }
         }
     }
 
-    private fun criaProduto(): Produto {
+    private fun criaProduto(usuarioId: String): Produto {
         val campoNome = binding.activityFormularioProdutoNome
         val nome = campoNome.text.toString()
         val campoDescricao = binding.activityFormularioProdutoDescricao
@@ -96,7 +110,8 @@ class FormularioProdutoActivity : AppCompatActivity() {
             nome = nome,
             descricao = descricao,
             valor = valor,
-            imagem = url
+            imagem = url,
+            usuarioId = usuarioId
         )
     }
 
